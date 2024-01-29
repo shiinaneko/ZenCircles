@@ -17,6 +17,43 @@ function getBrushSize(x, y, time) {
     return 5; // デフォルトのブラシサイズ
 }
 
+function getTouchPos(canvas, touchEvent) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: touchEvent.touches[0].clientX - rect.left,
+        y: touchEvent.touches[0].clientY - rect.top
+    };
+}
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = getTouchPos(canvas, e);
+    [lastX, lastY] = [touch.x, touch.y];
+    isDrawing = true;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const touch = getTouchPos(canvas, e);
+    drawLine(touch.x, touch.y);
+});
+
+canvas.addEventListener('touchend', () => {
+    isDrawing = false;
+});
+
+function drawLine(x, y) {
+    const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
+    ctx.lineWidth = brushSize;
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+}
+
+// 既存のマウスイベントの処理を drawLine を使用するように変更
 canvas.addEventListener('mousemove', (e) => {
     if (!isDrawing) return;
     const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
@@ -29,6 +66,19 @@ canvas.addEventListener('mousemove', (e) => {
     ctx.stroke();
     [lastX, lastY] = [e.offsetX, e.offsetY];
 });
+
+// canvas.addEventListener('mousemove', (e) => {
+//     if (!isDrawing) return;
+//     const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
+//     ctx.lineWidth = brushSize;
+//     // ...既存の描画ロジック...
+//     if (!isDrawing) return;
+//     ctx.beginPath();
+//     ctx.moveTo(lastX, lastY);
+//     ctx.lineTo(e.offsetX, e.offsetY);
+//     ctx.stroke();
+//     [lastX, lastY] = [e.offsetX, e.offsetY];
+// });
 
 canvas.addEventListener('mousedown', (e) => {
     // ...既存のmousedownロジック...
