@@ -20,3 +20,26 @@ body {
     margin-top: 10px;
     font-size: 30px;
 }
+
+.button-container {
+    margin-top: 20px;
+}
+
+.button-container button,
+.button-container a {
+    /* display: block; */
+    margin: 5px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.button-container a:hover,
+.button-container button:hover {
+    background-color: #0056b3;
+}

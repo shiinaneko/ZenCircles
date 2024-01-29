@@ -52,7 +52,7 @@ canvas.addEventListener('mouseup', () => {
 document.getElementById('newRoundButton').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // キャンバスをクリア
     drawnPoints = []; // 描画された点のデータをリセット
-    document.getElementById('scoreDisplay').innerText = `Score: 0`; // スコア表示をリセット
+    // document.getElementById('scoreDisplay').innerText = `Score: 0`; // スコア表示をリセット
 });
 
 // 手書きの色を黒に設定
@@ -91,7 +91,7 @@ canvas.addEventListener('mousemove', (e) => {
 document.getElementById('newRoundButton').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const score = calculateScore();
-    document.getElementById('scoreDisplay').innerText = `Score: ${score}`;
+    // document.getElementById('scoreDisplay').innerText = `Score: ${score}`;
     drawnPoints = [];
 });
 
@@ -143,7 +143,7 @@ function calculateScore() {
     // 一定の閾値を設定して、それを基にパーセンテージスコアを計算
     const threshold = 10; // 適宜調整が必要
     const score = Math.max(0, 100 - (averageDeviation / threshold) * 100);
-    
+
     // 理想的な円の描画時に半透明の赤色を使用
     drawCircle(center, radius, [255, 0, 0], 0.5);
 
@@ -153,22 +153,45 @@ function calculateScore() {
     ctx.textAlign = 'center';
     ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);
 
-    // createDownloadButton();
+    createDownloadButton();
     
     return score.toFixed(2) + '%'; // パーセンテージ表示
 }
 
 function getCanvasImageData() {
-    return canvas.toDataURL('image/png');
+    // 一時的なCanvasを作成
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // 一時的なCanvasに白い背景を設定
+    tempCtx.fillStyle = '#FFFFFF'; // 白色
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // 元のCanvasの内容を一時的なCanvasにコピー
+    tempCtx.drawImage(canvas, 0, 0);
+
+    // 一時的なCanvasの内容を画像データとして取得
+    return tempCanvas.toDataURL('image/png');
 }
 
 function createDownloadButton() {
     const image = getCanvasImageData();
-    const button = document.createElement('a');
+    let button = document.getElementById('downloadButton');
+
+    if (!button) {
+        button = document.createElement('a');
+        button.id = 'downloadButton';
+        button.textContent = 'Download Image';
+        // "button-container"内にボタンを追加
+        document.querySelector('.button-container').appendChild(button);
+    }
+
     button.href = image;
     button.download = 'circle-drawing.png';
-    button.textContent = 'Download Image';
-    document.body.appendChild(button);
 }
+
+
 
 // drawCircle(center, radius, 'red'); // 理想的な円を描画
