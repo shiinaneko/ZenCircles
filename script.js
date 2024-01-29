@@ -3,11 +3,78 @@ const ctx = canvas.getContext('2d');
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
-
 let lastTime = 0;
 let lastMouseX = null;
 let lastMouseY = null;
+let drawnPoints = [];
 
+// キャンバスのサイズを調整
+function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetWidth;
+    redrawCanvas();
+}
+
+// 既存の描画内容を再描画（必要に応じて）
+function redrawCanvas() {
+    // 再描画する内容があればここに実装
+}
+
+// イベントの座標を取得
+function getEventPosition(event) {
+    if (event.touches) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = event.touches[0];
+        return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    } else {
+        return { x: event.offsetX, y: event.offsetY };
+    }
+}
+
+// 描画開始の処理
+function handleStart(event) {
+    event.preventDefault();
+    const { x, y } = getEventPosition(event);
+    lastX = x;
+    lastY = y;
+    lastTime = event.timeStamp;
+    lastMouseX = x;
+    lastMouseY = y;
+    isDrawing = true;
+    drawnPoints = [[x, y]];
+}
+
+// 描画中の処理
+function handleMove(event) {
+    event.preventDefault();
+    if (!isDrawing) return;
+    const { x, y } = getEventPosition(event);
+    const brushSize = getBrushSize(x, y, event.timeStamp);
+    ctx.lineWidth = brushSize;
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    lastX = x;
+    lastY = y;
+    lastMouseX = x;
+    lastMouseY = y;
+    lastTime = event.timeStamp;
+    drawnPoints.push([x, y]);
+}
+
+// 描画終了の処理
+function handleEnd(event) {
+    event.preventDefault();
+    isDrawing = false;
+    const score = calculateScore();
+    lastTime = 0;
+    lastMouseX = null;
+    lastMouseY = null;
+}
+
+// 描画時のブラシサイズを計算
 function getBrushSize(x, y, time) {
     if (lastTime && lastMouseX !== null && lastMouseY !== null) {
         const distance = Math.sqrt(Math.pow(x - lastMouseX, 2) + Math.pow(y - lastMouseY, 2));
@@ -17,133 +84,49 @@ function getBrushSize(x, y, time) {
     return 5; // デフォルトのブラシサイズ
 }
 
-function getTouchPos(canvas, touchEvent) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-        x: touchEvent.touches[0].clientX - rect.left,
-        y: touchEvent.touches[0].clientY - rect.top
-    };
+// イベントリスナーの設定
+function setupEventListeners() {
+    canvas.addEventListener('touchstart', handleStart, { passive: false });
+    canvas.addEventListener('touchmove', handleMove, { passive: false });
+    canvas.addEventListener('touchend', handleEnd, { passive: false });
+    canvas.addEventListener('mousedown', handleStart);
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('mouseup', handleEnd);
+    window.addEventListener('resize', resizeCanvas);
 }
 
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touch = getTouchPos(canvas, e);
-    [lastX, lastY] = [touch.x, touch.y];
-    isDrawing = true;
-});
+// スコア計算
+function calculateScore() {
+    // ...スコア計算ロジック...
+    if (drawnPoints.length < 20) { // 最小点数を設定
+        return '0%'; // 点数が少なすぎる場合は0%
+    }
 
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const touch = getTouchPos(canvas, e);
-    drawLine(touch.x, touch.y);
-});
+    const { center, radius } = calculateCircleCenterAndRadius(drawnPoints);
+    let deviationSum = 0;
+    drawnPoints.forEach(point => {
+        const distanceToCenter = Math.sqrt((point[0] - center.x) ** 2 + (point[1] - center.y) ** 2);
+        deviationSum += Math.abs(distanceToCenter - radius);
+    });
+    const averageDeviation = deviationSum / drawnPoints.length;
 
-canvas.addEventListener('touchend', () => {
-    isDrawing = false;
-});
+    // 一定の閾値を設定して、それを基にパーセンテージスコアを計算
+    const threshold = 10; // 適宜調整が必要
+    const score = Math.max(0, 100 - (averageDeviation / threshold) * 100);
 
-function drawLine(x, y) {
-    const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
-    ctx.lineWidth = brushSize;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    // 理想的な円の描画時に半透明の赤色を使用
+    drawCircle(center, radius, [255, 0, 0], 0.5);
+
+    // 理想的な円の中心にスコアを表示
+    ctx.font = '20px Arial';
+    ctx.fillStyle = 'blue';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);
+
+    createDownloadButton();
+    
+    return score.toFixed(2) + '%'; // パーセンテージ表示
 }
-
-// 既存のマウスイベントの処理を drawLine を使用するように変更
-canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
-    ctx.lineWidth = brushSize;
-    // ...既存の描画ロジック...
-    if (!isDrawing) return;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-});
-
-// canvas.addEventListener('mousemove', (e) => {
-//     if (!isDrawing) return;
-//     const brushSize = getBrushSize(e.offsetX, e.offsetY, e.timeStamp);
-//     ctx.lineWidth = brushSize;
-//     // ...既存の描画ロジック...
-//     if (!isDrawing) return;
-//     ctx.beginPath();
-//     ctx.moveTo(lastX, lastY);
-//     ctx.lineTo(e.offsetX, e.offsetY);
-//     ctx.stroke();
-//     [lastX, lastY] = [e.offsetX, e.offsetY];
-// });
-
-canvas.addEventListener('mousedown', (e) => {
-    // ...既存のmousedownロジック...
-    lastTime = e.timeStamp;
-    lastMouseX = e.offsetX;
-    lastMouseY = e.offsetY;
-
-    isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-});
-
-canvas.addEventListener('mouseup', () => {
-    lastTime = 0;
-    lastMouseX = null;
-    lastMouseY = null;
-    // ...既存のmouseupロジック...
-    isDrawing = false;
-});
-
-// New Roundボタンの処理を更新
-document.getElementById('newRoundButton').addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // キャンバスをクリア
-    drawnPoints = []; // 描画された点のデータをリセット
-    // document.getElementById('scoreDisplay').innerText = `Score: 0`; // スコア表示をリセット
-});
-
-// 手書きの色を黒に設定
-canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    ctx.strokeStyle = 'black'; // 描画色を黒に設定
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-    drawnPoints.push([e.offsetX, e.offsetY]);
-});
-
-// TODO: Implement the scoring logic and display the score
-let drawnPoints = [];
-
-canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-    drawnPoints = [[lastX, lastY]]; // Start capturing the new path
-});
-
-canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-    const score = calculateScore(); // スコア計算
-    // document.getElementById('scoreDisplay').innerText = `Score: ${score}`;
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    // ... existing drawing code ...
-    drawnPoints.push([e.offsetX, e.offsetY]);
-});
-
-document.getElementById('newRoundButton').addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const score = calculateScore();
-    // document.getElementById('scoreDisplay').innerText = `Score: ${score}`;
-    drawnPoints = [];
-});
 
 function calculateCircleCenterAndRadius(points) {
     // 最小二乗法による円の中心と半径の計算
@@ -177,35 +160,33 @@ function drawCircle(center, radius, color, alpha = 1) {
     ctx.stroke();
 }
 
-function calculateScore() {
-    if (drawnPoints.length < 20) { // 最小点数を設定
-        return '0%'; // 点数が少なすぎる場合は0%
+// 初期設定
+resizeCanvas();
+setupEventListeners();
+
+// New Roundボタンの処理
+document.getElementById('newRoundButton').addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawnPoints = [];
+    // スコア表示をリセットする場合はここに実装
+});
+
+// 画像ダウンロード機能の追加
+function createDownloadButton() {
+    // ...画像ダウンロード機能の実装...
+    const image = getCanvasImageData();
+    let button = document.getElementById('downloadButton');
+
+    if (!button) {
+        button = document.createElement('a');
+        button.id = 'downloadButton';
+        button.textContent = 'Download Image';
+        // "button-container"内にボタンを追加
+        document.querySelector('.button-container').appendChild(button);
     }
 
-    const { center, radius } = calculateCircleCenterAndRadius(drawnPoints);
-    let deviationSum = 0;
-    drawnPoints.forEach(point => {
-        const distanceToCenter = Math.sqrt((point[0] - center.x) ** 2 + (point[1] - center.y) ** 2);
-        deviationSum += Math.abs(distanceToCenter - radius);
-    });
-    const averageDeviation = deviationSum / drawnPoints.length;
-
-    // 一定の閾値を設定して、それを基にパーセンテージスコアを計算
-    const threshold = 10; // 適宜調整が必要
-    const score = Math.max(0, 100 - (averageDeviation / threshold) * 100);
-
-    // 理想的な円の描画時に半透明の赤色を使用
-    drawCircle(center, radius, [255, 0, 0], 0.5);
-
-    // 理想的な円の中心にスコアを表示
-    ctx.font = '20px Arial';
-    ctx.fillStyle = 'blue';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);
-
-    createDownloadButton();
-    
-    return score.toFixed(2) + '%'; // パーセンテージ表示
+    button.href = image;
+    button.download = 'circle-drawing.png';
 }
 
 function getCanvasImageData() {
@@ -226,22 +207,4 @@ function getCanvasImageData() {
     return tempCanvas.toDataURL('image/png');
 }
 
-function createDownloadButton() {
-    const image = getCanvasImageData();
-    let button = document.getElementById('downloadButton');
-
-    if (!button) {
-        button = document.createElement('a');
-        button.id = 'downloadButton';
-        button.textContent = 'Download Image';
-        // "button-container"内にボタンを追加
-        document.querySelector('.button-container').appendChild(button);
-    }
-
-    button.href = image;
-    button.download = 'circle-drawing.png';
-}
-
-
-
-// drawCircle(center, radius, 'red'); // 理想的な円を描画
+// ...その他の機能やロジック...

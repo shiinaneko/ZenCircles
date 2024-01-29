@@ -2,23 +2,25 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* height: 50vh;
-    margin: 0; */
+    height: 100vh;
+    margin: 0;
     background-color: #f0f0f0;
 }
 
 .game-container {
+    width: 100%;
+    max-width: 600px; /* 最大サイズを設定 */
+    padding: 20px;
+    box-sizing: border-box;
     text-align: center;
 }
 
 #drawingCanvas {
+    width: 100%;
+    height: auto;
     border: 1px solid black;
     background-color: #ffffff;
-}
-
-#scoreDisplay {
-    margin-top: 10px;
-    font-size: 30px;
+    touch-action: none; /* タッチ操作時のブラウザのデフォルト動作を無効化 */
 }
 
 .button-container {
@@ -27,7 +29,6 @@ body {
 
 .button-container button,
 .button-container a {
-    /* display: block; */
     margin: 5px auto;
     padding: 10px 20px;
     font-size: 16px;
