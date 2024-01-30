@@ -97,12 +97,17 @@ function setupEventListeners() {
 
 // スコア計算
 function calculateScore() {
+    const { center, radius } = calculateCircleCenterAndRadius(drawnPoints);
+
     // ...スコア計算ロジック...
     if (drawnPoints.length < 20) { // 最小点数を設定
+        ctx.font = '50px Arial';
+        ctx.fillStyle = 'blue';
+        ctx.textAlign = 'center';
+        ctx.fillText("😟", center.x, center.y - 50);
         return '0%'; // 点数が少なすぎる場合は0%
     }
-
-    const { center, radius } = calculateCircleCenterAndRadius(drawnPoints);
+    
     let deviationSum = 0;
     drawnPoints.forEach(point => {
         const distanceToCenter = Math.sqrt((point[0] - center.x) ** 2 + (point[1] - center.y) ** 2);
@@ -114,17 +119,23 @@ function calculateScore() {
     const threshold = 10; // 適宜調整が必要
     const score = Math.max(0, 100 - (averageDeviation / threshold) * 100);
 
-    // 理想的な円の描画時に半透明の赤色を使用
-    drawCircle(center, radius, [255, 0, 0], 0.5);
-
     // 理想的な円の中心にスコアを表示
-    ctx.font = '20px Arial';
+    ctx.font = '50px Arial';
     ctx.fillStyle = 'blue';
     ctx.textAlign = 'center';
-    ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);
+
+    if (radius > 0 && radius < 50) { // 最小点数を設定
+        ctx.fillText("😨", center.x, center.y - 50);
+    } else if (radius >= 50 && radius < 100) {
+        ctx.fillText("🥺", center.x, center.y);
+    } else {
+        // 理想的な円の描画時に半透明の赤色を使用
+        drawCircle(center, radius, [255, 0, 0], 0.3);
+        ctx.font = '25px Arial';
+        ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);    
+    }
 
     createDownloadButton();
-    
     return score.toFixed(2) + '%'; // パーセンテージ表示
 }
 
