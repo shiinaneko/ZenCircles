@@ -284,7 +284,7 @@ function calculateLineLength(drawnPoints) {
 }
 
 function tweetScore(score) {
-    const tweetText = `I scored ${score} on the ZenCircles! Can you beat me? #ZenCircles`;
+    const tweetText = `I scored ${score} on the ZenCircles! Can you beat me? #ZenCircles \n https://shiinaneko.github.io/ZenCircles/`;
     const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(twitterIntentUrl, '_blank'); // 新しいタブでTwitterの投稿画面を開く
 }
