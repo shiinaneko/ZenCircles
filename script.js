@@ -98,16 +98,26 @@ function setupEventListeners() {
 // スコア計算
 function calculateScore() {
     const { center, radius } = calculateCircleCenterAndRadius(drawnPoints);
+    
+    ctx.font = '50px Arial';
+    ctx.fillStyle = 'blue';
+    ctx.textAlign = 'center';
 
-    // ...スコア計算ロジック...
-    if (drawnPoints.length < 20) { // 最小点数を設定
-        ctx.font = '50px Arial';
-        ctx.fillStyle = 'blue';
-        ctx.textAlign = 'center';
-        ctx.fillText("😟", center.x, center.y - 50);
-        return '0%'; // 点数が少なすぎる場合は0%
+    // 線がある程度円に近い形状であるかを判定する処理
+    if (!isDrawingCircular(drawnPoints)) {
+        drawLargeX(center);
+        ctx.fillText("😭", center.x, center.y - 50);
+        return;
     }
     
+    // 線の長さをチェック
+    if (calculateLineLength(drawnPoints) < 800) { 
+        drawLargeX(center);
+        ctx.fillText("😨", center.x, center.y - 50);
+        return;
+    }
+
+    // ...スコア計算ロジック...
     let deviationSum = 0;
     drawnPoints.forEach(point => {
         const distanceToCenter = Math.sqrt((point[0] - center.x) ** 2 + (point[1] - center.y) ** 2);
@@ -120,13 +130,11 @@ function calculateScore() {
     const score = Math.max(0, 100 - (averageDeviation / threshold) * 100);
 
     // 理想的な円の中心にスコアを表示
-    ctx.font = '50px Arial';
-    ctx.fillStyle = 'blue';
-    ctx.textAlign = 'center';
-
-    if (radius > 0 && radius < 50) { // 最小点数を設定
-        ctx.fillText("😨", center.x, center.y - 50);
+    if (radius > 0 && radius < 50) {
+        drawLargeX(center);
+        ctx.fillText("😟", center.x, center.y - 50);
     } else if (radius >= 50 && radius < 100) {
+        drawLargeX(center);
         ctx.fillText("🥺", center.x, center.y);
     } else {
         // 理想的な円の描画時に半透明の赤色を使用
@@ -136,7 +144,7 @@ function calculateScore() {
     }
 
     createDownloadButton();
-    return score.toFixed(2) + '%'; // パーセンテージ表示
+    // return score.toFixed(2) + '%'; // パーセンテージ表示
 }
 
 function calculateCircleCenterAndRadius(points) {
@@ -218,4 +226,78 @@ function getCanvasImageData() {
     return tempCanvas.toDataURL('image/png');
 }
 
-// ...その他の機能やロジック...
+// 2つのベクトル間の角度を計算する関数（調整版）
+function calculateAngle(p1, p2, p3) {
+    const v1 = { x: p1[0] - p2[0], y: p1[1] - p2[1] };
+    const v2 = { x: p3[0] - p2[0], y: p3[1] - p2[1] };
+    const dotProduct = v1.x * v2.x + v1.y * v2.y;
+    const magnitudeV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+    const magnitudeV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+    
+    // ベクトルの大きさが非常に小さい場合は、角度を0として扱う
+    if (magnitudeV1 < 0.01 || magnitudeV2 < 0.01) {
+        return 0;
+    }
+    
+    const angle = Math.acos(dotProduct / (magnitudeV1 * magnitudeV2));
+    return angle * (180 / Math.PI); // ラジアンから度数へ変換
+}
+
+// 分散を計算する関数（NaNを回避）
+function calculateVariance(values) {
+    if (values.length <= 1) return 0; // 要素が1つ以下の場合は分散を0とする
+    
+    const mean = values.reduce((acc, val) => acc + val, 0) / values.length;
+    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+    return variance;
+}
+
+// 円に近いかの判定を緩和する
+function isDrawingCircular(points) {
+    if (points.length < 3) return false; // 少なくとも3点は必要
+
+    let angles = [];
+    for (let i = 1; i < points.length - 1; i++) {
+        const p1 = points[i - 1];
+        const p2 = points[i];
+        const p3 = points[i + 1];
+        const angle = calculateAngle(p1, p2, p3);
+        if (angle > 0) angles.push(angle); // 0より大きい角度のみを考慮
+    }
+
+    // 角度の分散が非常に小さい（直線に近い）または大きい（不規則な形状）場合にフィルタリング
+    const variance = calculateVariance(angles);
+    return variance > 5 && variance < 100; // 分散の閾値を調整
+}
+
+function drawLargeX(center) {
+    const xStart = center.x - (canvas.width / 4);
+    const yStart = center.y - (canvas.height / 4);
+    const xEnd = center.x  + (canvas.width / 4);
+    const yEnd = center.y + (canvas.height / 4) ;
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.1)";
+
+    ctx.beginPath();
+    // ctx.strokeStyle = 'red'; // ✗の色を赤に設定
+    ctx.lineWidth = 15; // 線の太さ
+
+    // 左上から右下への線
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(xEnd, yEnd);
+
+    // 右上から左下への線
+    ctx.moveTo(xEnd, yStart);
+    ctx.lineTo(xStart, yEnd);
+    ctx.stroke();
+}
+
+function calculateLineLength(drawnPoints) {
+    let totalLength = 0;
+    for (let i = 0; i < drawnPoints.length - 1; i++) {
+        const p1 = drawnPoints[i];
+        const p2 = drawnPoints[i + 1];
+        const distance = Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
+        totalLength += distance;
+    }
+    return totalLength;
+}
