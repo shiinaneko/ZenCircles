@@ -301,3 +301,15 @@ function calculateLineLength(drawnPoints) {
     }
     return totalLength;
 }
+
+function tweetScore(score) {
+    const tweetText = `I scored ${score}% on the Circle Drawing Game! Can you beat me? #CircleDrawingGame`;
+    const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(twitterIntentUrl, '_blank'); // 新しいタブでTwitterの投稿画面を開く
+}
+
+// ボタンクリックイベントを設定
+document.getElementById('tweetScoreButton').addEventListener('click', () => {
+    const score = calculateScore(); // ここでスコアを計算するか、既に計算されたスコアを使用
+    tweetScore(score);
+});
