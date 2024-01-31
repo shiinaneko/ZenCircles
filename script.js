@@ -111,7 +111,7 @@ function calculateScore() {
     }
     
     // 線の長さをチェック
-    if (calculateLineLength(drawnPoints) < 800) { 
+    if (calculateLineLength(drawnPoints) < 700) { 
         drawLargeX(center);
         ctx.fillText("😨", center.x, center.y - 50);
         return;
@@ -143,8 +143,8 @@ function calculateScore() {
         ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);    
     }
 
-    createDownloadButton();
-    // return score.toFixed(2) + '%'; // パーセンテージ表示
+    // createTweetButton();
+    return score.toFixed(2) + '%'; // パーセンテージ表示
 }
 
 function calculateCircleCenterAndRadius(points) {
@@ -190,22 +190,16 @@ document.getElementById('newRoundButton').addEventListener('click', () => {
     // スコア表示をリセットする場合はここに実装
 });
 
-// 画像ダウンロード機能の追加
-function createDownloadButton() {
+function createTweetButton() {
     // ...画像ダウンロード機能の実装...
-    const image = getCanvasImageData();
-    let button = document.getElementById('downloadButton');
+    let button = document.getElementById('tweetScoreButton');
 
     if (!button) {
-        button = document.createElement('a');
-        button.id = 'downloadButton';
-        button.textContent = 'Download Image';
-        // "button-container"内にボタンを追加
+        button.id = 'tweetScoreButton';
+        button.textContent = 'Tweet Score';
         document.querySelector('.button-container').appendChild(button);
     }
 
-    button.href = image;
-    button.download = 'circle-drawing.png';
 }
 
 function getCanvasImageData() {
@@ -303,7 +297,7 @@ function calculateLineLength(drawnPoints) {
 }
 
 function tweetScore(score) {
-    const tweetText = `I scored ${score}% on the Circle Drawing Game! Can you beat me? #CircleDrawingGame`;
+    const tweetText = `I scored ${score} on the ZenCircles! Can you beat me? #ZenCircles`;
     const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(twitterIntentUrl, '_blank'); // 新しいタブでTwitterの投稿画面を開く
 }
