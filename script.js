@@ -111,7 +111,7 @@ function calculateScore() {
     }
     
     // 線の長さをチェック
-    if (calculateLineLength(drawnPoints) < 700) { 
+    if (calculateLineLength(drawnPoints) < 650) { 
         drawLargeX(center);
         ctx.fillText("😨", center.x, center.y - 50);
         return;
@@ -143,7 +143,6 @@ function calculateScore() {
         ctx.fillText(`${score.toFixed(2)}%`, center.x, center.y);    
     }
 
-    // createTweetButton();
     return score.toFixed(2) + '%'; // パーセンテージ表示
 }
 
@@ -189,18 +188,6 @@ document.getElementById('newRoundButton').addEventListener('click', () => {
     drawnPoints = [];
     // スコア表示をリセットする場合はここに実装
 });
-
-function createTweetButton() {
-    // ...画像ダウンロード機能の実装...
-    let button = document.getElementById('tweetScoreButton');
-
-    if (!button) {
-        button.id = 'tweetScoreButton';
-        button.textContent = 'Tweet Score';
-        document.querySelector('.button-container').appendChild(button);
-    }
-
-}
 
 function getCanvasImageData() {
     // 一時的なCanvasを作成
