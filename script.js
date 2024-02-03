@@ -294,3 +294,16 @@ document.getElementById('tweetScoreButton').addEventListener('click', () => {
     const score = calculateScore(); // ここでスコアを計算するか、既に計算されたスコアを使用
     tweetScore(score);
 });
+
+document.getElementById('gameTitle').addEventListener('click', function() {
+    const gameTitle = this;
+    gameTitle.style.opacity = '0'; // フェードアウト効果を適用
+    document.getElementsByClassName('layer').item(0).style.opacity = '0';
+
+    // 500m秒後に画像を非表示にし、必要に応じてゲームの初期化を行う
+    setTimeout(() => {
+        gameTitle.style.display = 'none';
+        // ここでCanvasを使用したゲームの初期化や開始のロジックを呼び出す
+        document.getElementsByClassName('layer').item(0).remove();
+    }, 1000); // CSSのtransition時間と合わせる
+});

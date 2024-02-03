@@ -13,9 +13,33 @@
     <meta property="og:title" content="Zen Circles" />
     <meta property="og:description" content="Zen Circle Drawing Game!" />
     <meta property="og:image" content="ogp.jpg" />
+    <style>
+        .layer {
+            background: rgba(0, 0, 0, 0.5); /* 背景を薄くする */
+            width: 100%;
+            height: 100%;
+            position: fixed; /* 画面に固定するために指定 */
+            top: 0;
+            left: 0;
+            transition: opacity 1s ease-out;
+        }
+        #gameTitle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            width: 100%;
+            cursor: pointer; /* クリック可能を示す */
+            transition: opacity 1s ease-out;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
+        <div class="layer"></div>
+        <img id="gameTitle" src="ogp.jpg" alt="Game Title">
         <canvas id="drawingCanvas"></canvas>
         <div class="button-container">
             <button id="newRoundButton">New Round</button>

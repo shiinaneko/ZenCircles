@@ -4,7 +4,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: #a4b5aa;
 }
 
 .game-container {
@@ -18,9 +18,11 @@ body {
 #drawingCanvas {
     width: 100%;
     height: auto;
-    border: 1px solid black;
-    background-color: #ffffff;
+    /* border: 1px solid black; */
+    /* background-color: #ffffff; */
     touch-action: none; /* タッチ操作時のブラウザのデフォルト動作を無効化 */
+    background-size: cover;
+    background-image: url("canvas.gif");
 }
 
 .button-container {
